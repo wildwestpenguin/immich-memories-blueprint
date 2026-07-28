@@ -1,4 +1,6 @@
+> **Note:** Still editing
 # Immich Memories Blueprint
+
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Blueprint-blue)
 ![Immich](https://img.shields.io/badge/Immich-v3.0_Compatible-5B00FF)
 ![AI Assisted](https://img.shields.io/badge/Developed%20with-AI-brightgreen)
@@ -11,7 +13,7 @@ An enhanced Home Assistant automation blueprint that sends daily push notificati
 
 ---
 
-## Key Enhancements
+## Key Enhancements in v3.0
 
 Compared to the original release, this version brings significant stability fixes and new features:
 
@@ -26,11 +28,11 @@ Compared to the original release, this version brings significant stability fixe
 
 ## Compatibility & Requirements
 
-1. Tested on Immich v3.0 and Home Assistant 2026.7+.
+1. Tested on Immich v3.0 and Home Assistant 2024.x+.
 2. Immich API Key with the following permissions:
-   - memory.read
-   - asset.view
-3. Manual addition of rest_command in Home Assistant.
+   - `memory.read`
+   - `asset.view`
+3. Manual addition of `rest_command` in Home Assistant.
 
 ---
 
@@ -38,7 +40,7 @@ Compared to the original release, this version brings significant stability fixe
 
 ### Step 1: Add REST Command
 
-Add the following configuration to your configuration.yaml:
+Add the exact snippet below to your `configuration.yaml` file. Do not change `{{ api_url }}` or `{{ api_key }}`—these are variables filled dynamically by the blueprint during execution.
 
 ```yaml
 rest_command:
@@ -50,7 +52,7 @@ rest_command:
       x-api-key: "{{ api_key }}"
 ```
 
-> **Note:** Restart Home Assistant after saving configuration.yaml.
+> **Note:** Save the file and restart Home Assistant (or reload REST Commands from Developer Tools -> YAML).
 
 ### Step 2: Import the Blueprint
 
@@ -74,17 +76,17 @@ Alternatively, manually copy and paste one of the URLs below in **Settings -> Au
 
 | Input | Description | Default |
 |---|---|---|
-| **Immich API URL** | Base URL of your Immich server (e.g., http://192.168.1.50:2283) | Required |
+| **Immich API URL** | Base URL of your Immich server (e.g., `http://192.168.1.50:2283`) | Required |
 | **Immich API Key** | Immich API Key with proper permissions | Required |
 | **Immich UI URL** | Choose between Android App, iOS App, custom URL, or default API URL | Android App |
 | **Notify Targets** | Select one or multiple mobile devices to receive notifications | Required |
-| **Time of Day** | Base time to trigger the daily check | 09:00:00 |
-| **Max Random Delay** | Maximum delay (in minutes) after trigger time to send notification | 0 (Disabled) |
+| **Time of Day** | Base time to trigger the daily check | `09:00:00` |
+| **Max Random Delay** | Maximum delay (in minutes) after trigger time to send notification | `0` (Disabled) |
 | **Language** | Select your preferred notification language | English |
-| **Include Thumbnail** | Attach image preview to push notification | true |
-| **Memory Selection** | Mode to pick memory: random, newest, or oldest | random |
-| **Asset Selection** | Mode to pick image within memory: random, newest, or oldest | random |
-| **Notify on No Memories** | Send a fallback message if no memories exist for today | false |
+| **Include Thumbnail** | Attach image preview to push notification | `true` |
+| **Memory Selection** | Mode to pick memory: `random`, `newest`, or `oldest` | `random` |
+| **Asset Selection** | Mode to pick image within memory: `random`, `newest`, or `oldest` | `random` |
+| **Notify on No Memories** | Send a fallback message if no memories exist for today | `false` |
 
 ---
 
@@ -104,10 +106,26 @@ The blueprint includes built-in localized templates for:
 
 ---
 
-## Notes & Limitations
+## Troubleshooting
 
-- **Immich Version:** Verified and tested specifically with Immich v3.0. While it may work on older or newer releases, API responses might vary.
-- **REST Command Requirement:** The official Home Assistant Immich integration does not currently expose an action to fetch memories. Therefore, manual setup of the `rest_command` remains necessary.
+- **KeyError / Crashes:** Ensure your server is running Immich v3.0+. If you receive authentication errors, verify that your API key has both `memory.read` and `asset.view` scopes.
+- **No Notifications Received:** Verify that the `rest_command` runs without errors in **Developer Tools -> Actions**, ensure your target mobile app devices are properly selected, and check your Home Assistant system logs (`home-assistant.log`).
+- **Thumbnails Missing on iOS:** The blueprint automatically forces JPEG preview conversion (`size=preview`). If thumbnails fail to load, ensure your Home Assistant mobile app has network access to your Immich URL.
+
+---
+
+## Security & Privacy
+
+- **API Keys:** Never hardcode your API key in public configuration files. When configuring the automation via the Home Assistant UI, the key is saved safely in your local automation setup.
+- **Permissions:** The API key only requires read-only scopes (`memory.read`, `asset.view`). No write or delete permissions are required.
+
+---
+
+## Contributing & License
+
+Contributions, translations, and bug reports are welcome! Feel free to open an issue or submit a Pull Request on GitHub.
+
+This project is licensed under the MIT License.
 
 ---
 
