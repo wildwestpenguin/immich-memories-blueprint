@@ -60,15 +60,15 @@ Click one of the buttons below to import your preferred version directly into Ho
 
 **Default (English / Multi-language UI):**
 
-[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsodpt%2Fimmich-memories-ha-blueprint%2Fblob%2Fmain%2Fimmich-memories.yaml)
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fwildwestpenguin%2Fimmich-memories-blueprint%2Fblob%2Fdevelop%2Fimmich-memories.yaml)
 
 **Versão em Português (`immich_memories_pt.yaml`):**
 
-[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsodpt%2Fimmich-memories-ha-blueprint%2Fblob%2Fmain%2Fimmich-memories_pt.yaml)
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fwildwestpenguin%2Fimmich-memories-blueprint%2Fblob%2Fdevelop%2Fimmich-memories_pt.yaml)
 
 Alternatively, manually copy and paste one of the URLs below in **Settings -> Automations & Scenes -> Blueprints -> Import Blueprint**:
-- `https://github.com/sodpt/immich-memories-ha-blueprint/blob/main/immich-memories.yaml`
-- `https://github.com/sodpt/immich-memories-ha-blueprint/blob/main/immich-memories_pt.yaml`
+- `https://github.com/wildwestpenguin/immich-memories-blueprint/blob/develop/immich-memories.yaml`
+- `https://github.com/wildwestpenguin/immich-memories-blueprint/blob/develop/immich-memories_pt.yaml`
 
 ---
 
