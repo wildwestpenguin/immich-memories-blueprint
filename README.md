@@ -1,48 +1,46 @@
+> **Note:** Still editing
 # Immich Memories Blueprint
+
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Blueprint-blue)
+![Immich](https://img.shields.io/badge/Immich-v3.0_Compatible-5B00FF)
+![AI Assisted](https://img.shields.io/badge/Developed%20with-AI-brightgreen)
+
+An enhanced Home Assistant automation blueprint that sends daily push notifications featuring memories from your Immich photo server on the same calendar day in past years.
+
+> **Credit & AI Disclosure:**  
+> This project is a feature-rich fork based on the original blueprint created by @zolakt.  
+> The rewrite, advanced Jinja2 templating, multi-language support, error handling, and overall logic were almost entirely developed with the assistance of AI.
 
 ---
 
-## Description
-**Immich Memories** is a Home Assistant automation blueprint that sends a daily push notification featuring a memory from your Immich photo server that occurred on the same calendar day in past years. The automation allows full customization of the message, title, and notification icon, memory selection mode and timing.
+## Key Enhancements in v3.0
+
+Compared to the original release, this version brings significant stability fixes and new features:
+
+- **Multi-Device Support:** Send notifications to multiple phones simultaneously with dynamic target resolution.
+- **Random Delay:** Introduces a configurable random time delay before sending notifications to make reminders feel more natural.
+- **Multi-Language Support (i18n):** Native message templates for 10 languages (PT, EN, ES, DE, FR, NL, PL, IT, JA, ZH) with local grammar rules. Includes a dedicated `immich_memories_pt.yaml` file pre-configured for Portuguese users.
+- **iOS & Android Image Compatibility:** Thumbnail URLs are automatically converted to JPEG with size=preview, ensuring high-resolution rendering across all platforms (including iOS HEIC images).
+- **Robust Error Handling:** Advanced JSON parsing prevents crashes (e.g., fixing KeyError: 0) if the API returns unexpected data or authentication errors.
+- **Optional Empty Day Notifications:** Toggleable notifications to let you know when no memories exist for today.
 
 ---
 
-## Features
-- Sends daily push notifications at a configurable time
-- Supports selecting memories:
-  - Random
-  - Newest
-  - Oldest
-- Supports selecting a single asset within a memory:
-  - Random
-  - Newest
-  - Oldest
-- Customizable message and title templates with placeholders:
-  - `{{years_ago}}` — Number of years since the memory  
-  - `{{years_ago_label}}` — "year" or "years"  
-  - `{{memory_year}}` — Year of the memory
-- Customizable icon
-- Customizable notification channel (for Android)
-- If no memory exists for the current date, no notification will be sent.
+## Compatibility & Requirements
 
----
-
-## Prerequisites
-
-1. **Immich Server** accessible via API.  
-2. **Immich API Key** with permissions:
-   - `memory.read`  
-   - `asset.view`  
-3. **rest_command** for fetching memories from Immich
+1. Tested on Immich v3.0 and Home Assistant 2024.x+.
+2. Immich API Key with the following permissions:
+   - `memory.read`
+   - `asset.view`
+3. Manual addition of `rest_command` in Home Assistant.
 
 ---
 
 ## Installation
 
-### 1. Add REST Command
+### Step 1: Add REST Command
 
-Add the following snippet to your `configuration.yaml`:
+Add the exact snippet below to your `configuration.yaml` file. Do not change `{{ api_url }}` or `{{ api_key }}`—these are variables filled dynamically by the blueprint during execution.
 
 ```yaml
 rest_command:
@@ -54,65 +52,84 @@ rest_command:
       x-api-key: "{{ api_key }}"
 ```
 
-Restart Home Assistant after saving the changes.
+> **Note:** Save the file and restart Home Assistant (or reload REST Commands from Developer Tools -> YAML).
 
-### 2. Import the Blueprint
+### Step 2: Import the Blueprint
 
-[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fzolakt%2Fimmich-memories-blueprint%2Fblob%2Fmain%2Fimmich-memories.yaml)
+Click one of the buttons below to import your preferred version directly into Home Assistant:
 
-Alternatively, if the above button doesn't work:
-1. Go to Settings → Automations & Scenes → Blueprints.
-2. Click Import Blueprint
-3. Paste the URL of the YAML file from this repository
+**Default (English / Multi-language UI):**
 
-### 3. Create automation from blueprint
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsodpt%2Fimmich-memories-ha-blueprint%2Fblob%2Fmain%2Fimmich-memories.yaml)
 
----
+**Versão em Português (`immich_memories_pt.yaml`):**
 
-## Configuration
-| Input                     | Description                                                                 |
-|---------------------------|-----------------------------------------------------------------------------|
-| **Immich API URL**        | Base URL of your Immich server (e.g., `http://10.0.0.5:2283`, with no trailing slash)      |
-| **Immich API Key**        | API key with proper permissions                                             |
-| **Immich UI URL**         | Optional URL for UI links. Can choose between Android App, iOS app, a custom web URL or can be left empty to use the API URL. (default: Android App)      |
-| **Notify Target**         | Mobile device to receive notifications (e.g., `notify.mobile_app_myphone`) |
-| **Time of Day**           | Time to send the daily notification (default: `09:00:00`)                   |
-| **Include Thumbnail**     | Whether to include the memory image (default: true)                         |
-| **Memory Selection Mode** | `random`, `newest`, or `oldest`                                            |
-| **Asset Selection Mode**  | `random`, `newest`, or `oldest`                                            |
-| **Message Template**      | Custom notification message. Supports placeholders                          |
-| **Title Template**        | Optional custom title. Supports placeholders                                |
-| **Notification Icon**     | Optional icon (e.g., `mdi:camera`)                                          |
-| **Notification Channel**  | Optional. The channel to use for the notification (Android only). NOTE: channel needs to be configured for the Home Assistant app, not Immich app.        |
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fsodpt%2Fimmich-memories-ha-blueprint%2Fblob%2Fmain%2Fimmich-memories_pt.yaml)
 
-### Placeholders
-The following placeholders are available:
-- `{{years_ago}}` — Number of years since the memory  
-- `{{years_ago_label}}` — "year" or "years"  
-- `{{memory_year}}` — Year of the memory  
-
-### Example
-Message template:
-```
-On this day {{years_ago}} {{years_ago_label}} ago
-```
-Title template:
-```
-Memory from {{memory_year}}
-```
-
-This would produce a notification like:
-
-<img width="420" height="351" alt="image" src="https://github.com/user-attachments/assets/193ccf91-6d43-4f53-926b-e778d3bcca57" />
-
-## Known limitations
-1. There might be some issues in passing requests to the Immich API through a reverse proxy. Therefore it is recommened to use ip:port for **Immich API URL**, e.g. `http://10.0.0.5:2283`. It is fine to use the reverse proxy address for **Immich UI URL**, e.g. `https://immich.home.lan`, so it opens the UI with the cleaner URL
-2. Immich HA integration doesn't expose an action for fetching memories. Therefore, you need to add the **rest_command** manually to get around this. If they do add this action, I'll remove the **rest_command** and modify the logic so it uses the integration action
-
-## Notes
-- I only tested this on Android. It should work on iOS as well, although I provide no guarantees or support for it
-- PRs welcome
+Alternatively, manually copy and paste one of the URLs below in **Settings -> Automations & Scenes -> Blueprints -> Import Blueprint**:
+- `https://github.com/sodpt/immich-memories-ha-blueprint/blob/main/immich-memories.yaml`
+- `https://github.com/sodpt/immich-memories-ha-blueprint/blob/main/immich-memories_pt.yaml`
 
 ---
 
-<a href='https://ko-fi.com/E1E41N87EI' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+## Configuration Reference
+
+| Input | Description | Default |
+|---|---|---|
+| **Immich API URL** | Base URL of your Immich server (e.g., `http://192.168.1.50:2283`) | Required |
+| **Immich API Key** | Immich API Key with proper permissions | Required |
+| **Immich UI URL** | Choose between Android App, iOS App, custom URL, or default API URL | Android App |
+| **Notify Targets** | Select one or multiple mobile devices to receive notifications | Required |
+| **Time of Day** | Base time to trigger the daily check | `09:00:00` |
+| **Max Random Delay** | Maximum delay (in minutes) after trigger time to send notification | `0` (Disabled) |
+| **Language** | Select your preferred notification language | English |
+| **Include Thumbnail** | Attach image preview to push notification | `true` |
+| **Memory Selection** | Mode to pick memory: `random`, `newest`, or `oldest` | `random` |
+| **Asset Selection** | Mode to pick image within memory: `random`, `newest`, or `oldest` | `random` |
+| **Notify on No Memories** | Send a fallback message if no memories exist for today | `false` |
+
+---
+
+## Supported Languages (i18n)
+
+The blueprint includes built-in localized templates for:
+- Portuguese (also available as standalone `immich_memories_pt.yaml`)
+- English
+- Spanish
+- German
+- French
+- Dutch
+- Polish
+- Italian
+- Japanese
+- Chinese
+
+---
+
+## Troubleshooting
+
+- **KeyError / Crashes:** Ensure your server is running Immich v3.0+. If you receive authentication errors, verify that your API key has both `memory.read` and `asset.view` scopes.
+- **No Notifications Received:** Verify that the `rest_command` runs without errors in **Developer Tools -> Actions**, ensure your target mobile app devices are properly selected, and check your Home Assistant system logs (`home-assistant.log`).
+- **Thumbnails Missing on iOS:** The blueprint automatically forces JPEG preview conversion (`size=preview`). If thumbnails fail to load, ensure your Home Assistant mobile app has network access to your Immich URL.
+
+---
+
+## Security & Privacy
+
+- **API Keys:** Never hardcode your API key in public configuration files. When configuring the automation via the Home Assistant UI, the key is saved safely in your local automation setup.
+- **Permissions:** The API key only requires read-only scopes (`memory.read`, `asset.view`). No write or delete permissions are required.
+
+---
+
+## Contributing & License
+
+Contributions, translations, and bug reports are welcome! Feel free to open an issue or submit a Pull Request on GitHub.
+
+This project is licensed under the MIT License.
+
+---
+
+## Credits
+
+- Special thanks to @zolakt for creating the original Immich memories concept and initial blueprint layout.
+- Designed and built with AI collaboration.

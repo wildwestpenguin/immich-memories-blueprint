@@ -1,240 +1,405 @@
 blueprint:
-  name: Immich Memories
-  description: |
-    Sends a daily push notification with a random memory from past years on this calendar day.
+  name: Immich Memories v3.0 (Multi-Device, JPEG Thumbnails & Language)
+  description: >-
+    Sends a daily notification with a random memory from Immich. Triggers
+    from the configured time and waits a random amount of time to feel more
+    natural. Lets you select multiple phones and choose the language of the
+    texts (EN/PT/ES/DE/ZH/FR/NL/PL/IT/JA) with one click.
 
-    ### Requirements
-    Add the following to your `configuration.yaml`:
-    
+
+    ⚠️ Requires that you have defined a `rest_command.immich_get_memories`
+    in your `configuration.yaml`, for example:
+
     ```yaml
+
     rest_command:
       immich_get_memories:
-        url: "{{ api_url }}/api/memories?for={{ now().strftime('%Y-%m-%d') }}"
+        url: "{{ api_url }}/api/memories"
         method: GET
         headers:
-          Accept: "application/json"
           x-api-key: "{{ api_key }}"
+          Accept: "application/json"
     ```
 
-    For more information visit the [GitHub repository](https://github.com/zolakt/immich-memories-blueprint).
+
+    🔒 **API Key security**: the Immich API key used by this blueprint only
+    needs the following permissions (scopes): `memory.read`, `asset.read`
+    and `asset.view`. Create a dedicated API key with **only** these three
+    permissions — do not use a key with full/admin access, to minimize
+    impact if the key is ever exposed.
   domain: automation
   input:
     immich_api_url:
       name: Immich API URL
-      description: |
-        The base URL of your Immich server.
-        Example: `https://immich.example.com` or `http://10.0.0.5:2283`
-      default: ""
+      description: "Base URL of your Immich server (e.g. https://immich.example.com)"
+      default: ''
     immich_api_key:
       name: Immich API Key
-      description: API key with `memory.read` and `asset.view` permissions.
-      default: ""
+      description: >-
+        Immich API key. Create it with only the memory.read, asset.read and
+        asset.view permissions (no others are needed).
+      default: ''
     immich_ui_url:
       name: Immich UI URL / Mode
-      description: |
-        Choose how the notification opens Immich.
-
-        - Android App → opens via deep link (`deep-link://immich://…`)
-        - OS App → opens via deep link (`immich://…`)
-        - Or type a custom full URL (e.g. `https://immich.home.lan`)
-        - Leave empty to use the API URL instead
       default: Android App
       selector:
         select:
           options:
-            - Android App
-            - iOS App
+          - Android App
+          - iOS App
           custom_value: true
-    notify_target:
-      name: Notify Target
-      description: Target device for the notification, e.g., `notify.mobile_app_myphone`.
-      default: false
+          multiple: false
+    notify_targets:
+      name: Phones to Notify
+      description: Select the phones that will receive the notification.
       selector:
         device:
           filter:
-            integration: mobile_app
+          - integration: mobile_app
+          multiple: true
     time_of_day:
-      name: Time of Day
-      description: Time to send the daily memory notification.
+      name: Start Time
+      description: The time of day from which the automation starts processing.
       default: "09:00:00"
       selector:
-        time:
+        time: {}
+    max_delay_minutes:
+      name: Maximum Delay (Minutes)
+      description: The notification will arrive naturally between the start time and this limit, in minutes.
+      default: 180
+      selector:
+        number:
+          min: 1
+          max: 480
+          unit_of_measurement: min
+          mode: slider
     include_image:
       name: Include Thumbnail
-      description: Include the memory thumbnail in the notification if available.
       default: true
       selector:
-        boolean:
+        boolean: {}
     memory_selection_mode:
-      name: Memory Selection Mode
-      description: How to select which memory to display.
+      name: Memory Selection
       default: random
       selector:
         select:
           options:
-            - random
-            - newest
-            - oldest
+          - random
+          - newest
+          - oldest
     asset_selection_mode:
-      name: Asset Selection Mode
-      description: How to select which image within the memory to display.
+      name: Memory Image Selection
       default: random
       selector:
         select:
           options:
-            - random
-            - newest
-            - oldest
+          - random
+          - newest
+          - oldest
+    language:
+      name: Text Language
+      description: "Choose the language of the default texts (title, message, 'year'/'years'). If you fill in the text fields below manually, they always take priority over this choice."
+      default: en
+      selector:
+        select:
+          options:
+          - label: English
+            value: en
+          - label: Português
+            value: pt
+          - label: Español
+            value: es
+          - label: Deutsch
+            value: de
+          - label: 中文（简体）
+            value: zh
+          - label: Français
+            value: fr
+          - label: Nederlands
+            value: nl
+          - label: Polski
+            value: pl
+          - label: Italiano
+            value: it
+          - label: 日本語
+            value: ja
+          mode: dropdown
     message_template:
-      name: Message Template
-      description: |
-        Customize the notification message.
-        Available placeholders:
-          - {{years_ago}}       → Number of years since the memory
-          - {{years_ago_label}} → "year" or "years"
-          - {{memory_year}}     → Year of the memory
-      default: "On this day {{years_ago}} {{years_ago_label}} ago"
+      name: Message Template (optional)
+      description: "Leave empty to use the default text for the language chosen above. Available placeholders: {years_ago}, {years_ago_label}"
+      default: ''
       selector:
         text:
+          multiline: false
     title_template:
-      name: Title Template
-      description: |
-        Optional. Customize the notification title.
-        Available placeholders:
-          - {{years_ago}}       → Number of years since the memory
-          - {{years_ago_label}} → "year" or "years"
-          - {{memory_year}}     → Year of the memory
-      default: ""
+      name: Title Template (optional)
+      description: "Leave empty to use the default text for the language chosen above."
+      default: ''
       selector:
         text:
+          multiline: false
     label_year_singular:
-      name: Singular Year Label
-      description: Label to use when years_ago == 1.
-      default: "year"
+      name: Text for 1 Year (optional)
+      description: "Leave empty to use the default text for the language chosen above."
+      default: ''
       selector:
         text:
+          multiline: false
     label_year_plural:
-      name: Plural Years Label
-      description: Label to use when years_ago != 1.
-      default: "years"
+      name: Text for Multiple Years (optional)
+      description: "Leave empty to use the default text for the language chosen above."
+      default: ''
       selector:
         text:
+          multiline: false
     notification_icon:
       name: Notification Icon
-      description: |
-        Optional icon for the notification.
-        Example: `mdi:camera`, `mdi:image-outline`, `mdi:memory`.
-        Leave empty to use the app default icon.
-      default: ""
+      default: ''
       selector:
-        icon:
+        icon: {}
     notification_channel:
       name: Notification Channel
-      description: |
-        Optional. The channel to use for the notification (Android only).
-        NOTE: channel needs to be configured for the Home Assistant app, not Immich app.
-      default: ""
+      default: ''
       selector:
         text:
-
+          multiline: false
+    notify_on_no_memories:
+      name: Notify When There Are No Memories
+      description: "If enabled, sends a notification letting you know when no Immich memories were found for the day. If disabled, the automation simply does nothing on those days."
+      default: true
+      selector:
+        boolean: {}
 trigger:
-  - platform: time
-    at: !input time_of_day
-
+- platform: time
+  at: !input time_of_day
 action:
-  - variables:
-      api_url: !input immich_api_url
-      api_key: !input immich_api_key
-      ui_url: !input immich_ui_url
-      target: !input notify_target
-      include_image: !input include_image
-      memory_selection_mode: !input memory_selection_mode
-      asset_selection_mode: !input asset_selection_mode
-      notification_icon: !input notification_icon
-      notification_channel: !input notification_channel
-      label_year_singular: !input label_year_singular
-      label_year_plural: !input label_year_plural
-  - action: rest_command.immich_get_memories
-    data:
-      api_url: "{{ api_url }}"
-      api_key: "{{ api_key }}"
-    response_variable: memories_response
-  - variables:
-      memory_list: "{{ memories_response.content if memories_response.content is defined else [] }}"
-      sorted_memories: >-
-        {% if memory_selection_mode == 'newest' %}
-          {{ memory_list | sort(attribute='data.year', reverse=true) }}
-        {% elif memory_selection_mode == 'oldest' %}
-          {{ memory_list | sort(attribute='data.year') }}
-        {% else %}
-          {{ memory_list }}
-        {% endif %}
-      selected_memory: >-
-        {% if sorted_memories | length == 0 %}
-          none
-        {% elif memory_selection_mode == 'random' %}
-          {{ sorted_memories | random }}
-        {% else %}
-          {{ sorted_memories[0] }}
-        {% endif %}
-      selected_assets: "{{ selected_memory.assets if selected_memory and selected_memory.assets is defined else [] }}"
-      sorted_assets: >-
-        {% if asset_selection_mode == 'newest' %}
-          {{ selected_assets | sort(attribute='fileCreatedAt', reverse=true) }}
-        {% elif asset_selection_mode == 'oldest' %}
-          {{ selected_assets | sort(attribute='fileCreatedAt') }}
-        {% else %}
-          {{ selected_assets }}
-        {% endif %}
-      selected_asset: >-
-        {% if sorted_assets | length == 0 %}
-          none
-        {% elif asset_selection_mode == 'random' %}
-          {{ sorted_assets | random }}
-        {% else %}
-          {{ sorted_assets[0] }}
-        {% endif %}
-      thumbnail_url: >-
-        {% if selected_asset  != 'none' %}
-          {{ api_url }}/api/assets/{{ selected_asset.id }}/thumbnail?apiKey={{ api_key }}
-        {% else %}
-          ''
-        {% endif %}
-      deep_link: >-
-        {% if selected_memory and selected_memory.id is defined %}
-          {% if ui_url == 'Android App' %}
-            deep-link://immich://memory?id={{ selected_memory.id }}
-          {% elif ui_url == 'iOS App' %}
-            immich://memory?id={{ selected_memory.id }}
-          {% elif ui_url | length > 0 %}
-            {{ ui_url }}/memory?id={{ selected_memory.id }}
-          {% else %}
-            {{ api_url }}/memory?id={{ selected_memory.id }}
-          {% endif %}
-        {% endif %}
-      years_ago: "{{ now().year - selected_memory.data.year if selected_memory != none else 0 }}"
-      years_ago_label: >-
-        {% if years_ago|int == 1 %}
-          {{ label_year_singular }}
-        {% else %}
-          {{ label_year_plural }}
-        {% endif %}
-      memory_year: "{{ selected_memory.data.year if selected_memory != none else '' }}"
-  - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ selected_memory != none }}"
-        sequence:
-          - device_id: !input notify_target
-            domain: mobile_app
-            type: notify
-            message: !input message_template
-            title: !input title_template
-            data:
-              image: "{{ thumbnail_url if include_image and selected_asset  != 'none' else omit }}"
-              clickAction: "{{ deep_link }}"
-              url: "{{ deep_link }}"
-              notification_icon: "{{ notification_icon if notification_icon | length > 0 else omit }}"
-              channel: "{{ notification_channel if notification_channel | length > 0 else omit }}"
+- variables:
+    max_minutes: !input max_delay_minutes
+- delay: "{{ range(1, max_minutes | int + 1) | random | int * 60 }}"
+- variables:
+    api_url: !input immich_api_url
+    api_key: !input immich_api_key
+    ui_url: !input immich_ui_url
+    targets: !input notify_targets
+    include_image: !input include_image
+    memory_selection_mode: !input memory_selection_mode
+    asset_selection_mode: !input asset_selection_mode
+    notification_icon: !input notification_icon
+    notification_channel: !input notification_channel
+    notify_on_no_memories: !input notify_on_no_memories
+    language: !input language
+    user_message_template: !input message_template
+    user_title_template: !input title_template
+    user_label_year_singular: !input label_year_singular
+    user_label_year_plural: !input label_year_plural
 
+    lang_strings: >-
+      {{ {
+        'en': {
+          'title': "Today's Memories",
+          'message': 'On this day, {years_ago} {years_ago_label} ago',
+          'year_singular': 'year',
+          'year_plural': 'years',
+          'fallback_title': 'Memories',
+          'no_memories_title': 'No memories today',
+          'no_memories_message': 'No Immich memories were found for today.'
+        },
+        'pt': {
+          'title': 'Memórias de hoje',
+          'message': 'No dia de hoje, há {years_ago} {years_ago_label}',
+          'year_singular': 'ano',
+          'year_plural': 'anos',
+          'fallback_title': 'Memórias',
+          'no_memories_title': 'Sem memórias hoje',
+          'no_memories_message': 'Não foram encontradas memórias do Immich para hoje.'
+        },
+        'es': {
+          'title': 'Recuerdos de hoy',
+          'message': 'En este día, hace {years_ago} {years_ago_label}',
+          'year_singular': 'año',
+          'year_plural': 'años',
+          'fallback_title': 'Recuerdos',
+          'no_memories_title': 'Sin recuerdos hoy',
+          'no_memories_message': 'No se encontraron recuerdos de Immich para hoy.'
+        },
+        'de': {
+          'title': 'Erinnerungen von heute',
+          'message': 'An diesem Tag, vor {years_ago} {years_ago_label}',
+          'year_singular': 'Jahr',
+          'year_plural': 'Jahren',
+          'fallback_title': 'Erinnerungen',
+          'no_memories_title': 'Keine Erinnerungen heute',
+          'no_memories_message': 'Für heute wurden keine Immich-Erinnerungen gefunden.'
+        },
+        'zh': {
+          'title': '今日回忆',
+          'message': '在这一天，已经过去了{years_ago}{years_ago_label}',
+          'year_singular': '年',
+          'year_plural': '年',
+          'fallback_title': '回忆',
+          'no_memories_title': '今天没有回忆',
+          'no_memories_message': '未找到今天的 Immich 回忆。'
+        },
+        'fr': {
+          'title': 'Souvenirs du jour',
+          'message': 'Ce jour-là, il y a {years_ago} {years_ago_label}',
+          'year_singular': 'an',
+          'year_plural': 'ans',
+          'fallback_title': 'Souvenirs',
+          'no_memories_title': 'Aucun souvenir aujourd''hui',
+          'no_memories_message': 'Aucun souvenir Immich n''a été trouvé pour aujourd''hui.'
+        },
+        'nl': {
+          'title': 'Herinneringen van vandaag',
+          'message': 'Op deze dag, {years_ago} {years_ago_label} geleden',
+          'year_singular': 'jaar',
+          'year_plural': 'jaar',
+          'fallback_title': 'Herinneringen',
+          'no_memories_title': 'Geen herinneringen vandaag',
+          'no_memories_message': 'Er zijn geen Immich-herinneringen gevonden voor vandaag.'
+        },
+        'pl': {
+          'title': 'Dzisiejsze wspomnienia',
+          'message': 'W tym dniu, {years_ago} {years_ago_label} temu',
+          'year_singular': 'rok',
+          'year_plural': 'lat',
+          'fallback_title': 'Wspomnienia',
+          'no_memories_title': 'Brak wspomnień dzisiaj',
+          'no_memories_message': 'Nie znaleziono wspomnień Immich na dzisiaj.'
+        },
+        'it': {
+          'title': 'Ricordi di oggi',
+          'message': 'In questo giorno, {years_ago} {years_ago_label} fa',
+          'year_singular': 'anno',
+          'year_plural': 'anni',
+          'fallback_title': 'Ricordi',
+          'no_memories_title': 'Nessun ricordo oggi',
+          'no_memories_message': 'Nessun ricordo Immich trovato per oggi.'
+        },
+        'ja': {
+          'title': '今日の思い出',
+          'message': 'この日から{years_ago}{years_ago_label}前の出来事です',
+          'year_singular': '年',
+          'year_plural': '年',
+          'fallback_title': '思い出',
+          'no_memories_title': '今日の思い出はありません',
+          'no_memories_message': '今日のImmichの思い出は見つかりませんでした。'
+        }
+      }[language] if language in ['en','pt','es','de','zh','fr','nl','pl','it','ja'] else {
+          'title': "Today's Memories",
+          'message': 'On this day, {years_ago} {years_ago_label} ago',
+          'year_singular': 'year',
+          'year_plural': 'years',
+          'fallback_title': 'Memories',
+          'no_memories_title': 'No memories today',
+          'no_memories_message': 'No Immich memories were found for today.'
+      } }}
+
+    effective_message_template: "{{ user_message_template if user_message_template | length > 0 else lang_strings.message }}"
+    effective_title_template: "{{ user_title_template if user_title_template | length > 0 else lang_strings.title }}"
+    effective_label_year_singular: "{{ user_label_year_singular if user_label_year_singular | length > 0 else lang_strings.year_singular }}"
+    effective_label_year_plural: "{{ user_label_year_plural if user_label_year_plural | length > 0 else lang_strings.year_plural }}"
+- action: rest_command.immich_get_memories
+  data:
+    api_url: '{{ api_url }}'
+    api_key: '{{ api_key }}'
+  response_variable: memories_response
+- variables:
+    memory_list: >-
+      {{ memories_response.content | from_json if memories_response.content is defined and memories_response.content is string
+         else memories_response.content if memories_response.content is defined
+         else [] }}
+
+    selected_memory: >-
+      {{ memory_list | random if memory_selection_mode == 'random' and memory_list is iterable and memory_list | length > 0
+         else (memory_list | sort(attribute='data.year', reverse=true) | first) if memory_selection_mode == 'newest' and memory_list is iterable and memory_list | length > 0
+         else (memory_list | sort(attribute='data.year') | first) if memory_list is iterable and memory_list | length > 0
+         else 'none' }}
+
+    selected_assets: '{{ selected_memory.assets if (selected_memory and selected_memory != "none" and selected_memory.assets is defined) else [] }}'
+
+    selected_asset: >-
+      {{ selected_assets | random if asset_selection_mode == 'random' and selected_assets is iterable and selected_assets | length > 0
+         else (selected_assets | sort(attribute='fileCreatedAt', reverse=true) | first) if asset_selection_mode == 'newest' and selected_assets is iterable and selected_assets | length > 0
+         else (selected_assets | sort(attribute='fileCreatedAt') | first) if selected_assets is iterable and selected_assets | length > 0
+         else 'none' }}
+
+    deep_link: >-
+      {{ 'deep-link://immich://memory?id=' ~ selected_memory.id if ui_url == 'Android App' and selected_memory and selected_memory != 'none' and selected_memory.id is defined
+         else 'immich://memory?id=' ~ selected_memory.id if ui_url == 'iOS App' and selected_memory and selected_memory != 'none' and selected_memory.id is defined
+         else ui_url ~ '/memory?id=' ~ selected_memory.id if ui_url | length > 0 and selected_memory and selected_memory != 'none' and selected_memory.id is defined
+         else api_url ~ '/memory?id=' ~ selected_memory.id if selected_memory and selected_memory != 'none' and selected_memory.id is defined
+         else '' }}
+
+    years_ago: '{{ now().year - selected_memory.data.year if (selected_memory and selected_memory != "none" and selected_memory.data is defined) else 0 }}'
+
+    years_ago_label: '{{ effective_label_year_singular if years_ago | int == 1 else effective_label_year_plural }}'
+
+    parsed_message: >-
+      {{ effective_message_template | replace('{years_ago}', years_ago | string)
+                                    | replace('{years_ago_label}', years_ago_label) }}
+    parsed_title: >-
+      {{ (effective_title_template if effective_title_template | length > 0 else lang_strings.fallback_title)
+         | replace('{years_ago}', years_ago | string)
+         | replace('{years_ago_label}', years_ago_label) }}
+    notification_data: >-
+      {% set clean_api_url = api_url.rstrip('/') %}
+      {% set thumb_url = clean_api_url ~ "/api/assets/" ~ selected_asset.id ~ "/thumbnail?apiKey=" ~ api_key ~ "&format=JPEG&size=preview" %}
+      {% set base_data = {
+        "clickAction": deep_link,
+        "url": deep_link
+      } %}
+      {% if include_image and selected_asset != "none" and selected_asset.id is defined %}
+        {% set base_data = dict(base_data, **{
+          "image": thumb_url,
+          "attachment": {"url": thumb_url}
+        }) %}
+      {% endif %}
+      {% if notification_icon | length > 0 %}
+        {% set base_data = dict(base_data, **{"notification_icon": notification_icon}) %}
+      {% endif %}
+      {% if notification_channel | length > 0 %}
+        {% set base_data = dict(base_data, **{"channel": notification_channel}) %}
+      {% endif %}
+      {{ base_data }}
+- choose:
+  - conditions:
+    - condition: template
+      value_template: '{{ selected_memory != "none" and selected_memory != none }}'
+    sequence:
+    - repeat:
+        for_each: '{{ targets }}'
+        sequence:
+        - variables:
+            device_name: "{{ device_attr(repeat.item, 'name') | slugify }}"
+        - action: "notify.mobile_app_{{ device_name }}"
+          data:
+            title: "{{ parsed_title }}"
+            message: "{{ parsed_message }}"
+            data: "{{ notification_data }}"
+  - conditions:
+    - condition: template
+      value_template: '{{ (selected_memory == "none" or selected_memory == none) and notify_on_no_memories }}'
+    sequence:
+    - repeat:
+        for_each: '{{ targets }}'
+        sequence:
+        - variables:
+            device_name: "{{ device_attr(repeat.item, 'name') | slugify }}"
+            notify_entity: "{{ device_entities(repeat.item) | select('match', '^notify\\.') | list | first | default('', true) }}"
+        - if:
+          - condition: template
+            value_template: "{{ notify_entity | length > 0 }}"
+          then:
+          - action: notify.send_message
+            target:
+              entity_id: "{{ notify_entity }}"
+            data:
+              title: "{{ lang_strings.no_memories_title }}"
+              message: "{{ lang_strings.no_memories_message }}"
+          else:
+          - action: "notify.mobile_app_{{ device_name }}"
+            data:
+              title: "{{ lang_strings.no_memories_title }}"
+              message: "{{ lang_strings.no_memories_message }}"
 mode: single
